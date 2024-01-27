@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Any
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer
@@ -7,19 +8,27 @@ from prompt_toolkit.formatted_text import to_formatted_text
 from .utils import COMMAND_PROMPT as MAIN_PROMPT, get_error_message
 
 
-class CustomPrompt:
+class UserInterface(ABC):
+    @abstractmethod
+    def show_prompt(self, command_prompt: str, completer: Completer, command_for_break: str | tuple,
+                    command_parser: Any, command_handler: Any, placeholder: str = "",
+                    required: bool = False, ignore_empty_command: bool = True,
+                    post_handlers=None) -> Any:
+        pass
+
+
+class CustomPrompt(UserInterface):
     def __init__(
-        self,
-        command_prompt: str,
-        completer: Completer | None,
-        command_for_break: str | tuple,
-        command_parser=None,
-        command_handler=None,
-        placeholder: str = "",
-        # single: bool = True,
-        required: bool = False,
-        ignore_empty_command: bool = True,
-        post_handlers=None,
+            self,
+            command_prompt: str,
+            completer: Completer | None,
+            command_for_break: str | tuple,
+            command_parser=None,
+            command_handler=None,
+            placeholder: str = "",
+            required: bool = False,
+            ignore_empty_command: bool = True,
+            post_handlers=None,
     ) -> None:
         self.__command_prompt = command_prompt
         self.command_for_break = command_for_break
@@ -27,7 +36,6 @@ class CustomPrompt:
         self.completer = completer
         self.command_handler = command_handler
         self.__placeholder = placeholder
-        # self.__single = single
         self.__required = required
         self.ignore_empty_command = ignore_empty_command
         self.post_handlers = post_handlers
@@ -47,6 +55,16 @@ class CustomPrompt:
     @placeholder.setter
     def placeholder(self, value):
         self.__placeholder = value
+
+    def show_prompt(self, command_prompt: str, completer: Completer, command_for_break: str | tuple,
+                    command_parser: Any, command_handler: Any, placeholder: str = "",
+                    required: bool = False, ignore_empty_command: bool = True,
+                    post_handlers=None) -> Any:
+        session = PromptSession(
+            self.command_prompt,
+            complete_while_typing=True,
+            placeholder=self.placeholder,
+        )
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         session = PromptSession(
